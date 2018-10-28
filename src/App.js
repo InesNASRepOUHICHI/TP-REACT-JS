@@ -143,7 +143,8 @@ class RestaurantForm extends React.Component {
   render() {
     return (
       <div className="panel panel-default">
-        <div className="panel-heading">Create restaurant</div>
+      <h1 align="center">TP React JS + Node JS + Mongo DB</h1>
+        <div className="panel-heading">Créer un restaurant</div>
         <div className="panel-body">
           <form className="form-inline">
             <div className="col-md-2">
