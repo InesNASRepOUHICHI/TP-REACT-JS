@@ -1,66 +1,36 @@
-import React from 'react';
-import './App.css';
+import React, { Component } from 'react';
+import ReactDOM from 'react-dom';
+import ReactPaginate from 'react-paginate';
 
 
-class App extends React.Component {
+window.React = React;
+
+
+export class RestaurantList extends Component {
   constructor(props) {
     super(props);
-    this.deleteRestaurant = this.deleteRestaurant.bind(this);
-    this.createRestaurant = this.createRestaurant.bind(this);
-    this.state = {
-      restaurants: [],
-    };
   }
-
-  componentDidMount() {
-    this.loadRestaurantsFromServer();
-  }
-
-  // Load restaurants from database
-  loadRestaurantsFromServer() {
-    fetch('http://localhost:8080/api/restaurants')
-      .then((response) => response.json())
-      .then((responseData) => {
-        this.setState({
-          restaurants: responseData.data,
-        });
-      });
-  }
-
-  // Delete restaurant
-  deleteRestaurant(restaurant) {
-    fetch('http://localhost:8080/api/restaurants/' + restaurant._id,
-      { method: 'DELETE', })
-      .then(
-        res => this.loadRestaurantsFromServer()
-      )
-      .catch(err => console.error(err))
-  }
-
-  // Create new restaurant
-  createRestaurant(restaurant) {
-    fetch('http://localhost:8080/api/restaurants', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(restaurant)
-    })
-      .then(
-        res => this.loadRestaurantsFromServer()
-      )
-      .catch(err => console.error(err))
-  }
-
   render() {
+    var restaurantNodes = this.props.data.map(restaurant =>
+      <Restaurant key={restaurant._id} restaurant={restaurant} deleteRestaurant={this.props.deleteRestaurant} />
+    );
+
+
     return (
+
       <div>
-        <RestaurantForm createRestaurant={this.createRestaurant} />
-        <RestaurantTable deleteRestaurant={this.deleteRestaurant} restaurants={this.state.restaurants} />
+        <table className="table table-striped" id="project-restaurants">
+          <thead>
+            <tr>
+              <th>Id</th><th>Name</th><th>Cuisine</th><th> </th><th> </th>
+            </tr>
+          </thead>
+          <tbody>{restaurantNodes}</tbody>
+        </table>
       </div>
     );
   }
-}
+};
 
 class RestaurantTable extends React.Component {
   constructor(props) {
@@ -68,7 +38,7 @@ class RestaurantTable extends React.Component {
   }
 
   render() {
-    var restaurants = this.props.restaurants.map(restaurant =>
+    var restaurants = this.props.data.map(restaurant =>
       <Restaurant key={restaurant._id} restaurant={restaurant} deleteRestaurant={this.props.deleteRestaurant} />
     );
 
@@ -85,6 +55,92 @@ class RestaurantTable extends React.Component {
       </div>);
   }
 }
+
+
+export class App extends Component {
+  constructor(props) {
+    super(props);
+    this.deleteRestaurant = this.deleteRestaurant.bind(this);
+    this.createRestaurant = this.createRestaurant.bind(this);
+    this.state = {
+      data: [],
+      offset: 0
+    }
+  }
+  
+  // Load restaurants from database
+  loadRestaurantsFromServer(pageIndex) {
+    fetch('http://localhost:8080/api/restaurants?page='+pageIndex+'&pagesize=10')
+      .then((response) => response.json())
+      .then((responseData) => {
+         this.setState({data: responseData.data, pageCount: Math.ceil(responseData.count/10)});
+      });
+  }
+
+  componentDidMount() {
+    this.loadRestaurantsFromServer(0);
+  }
+
+
+  // Delete restaurant
+  deleteRestaurant(restaurant) {
+    fetch('http://localhost:8080/api/restaurants/' + restaurant._id,
+      { method: 'DELETE', })
+      .then(
+        res => this.loadRestaurantsFromServer(0)
+      )
+      .catch(err => console.error(err))
+  }
+
+  // Create new restaurant
+  createRestaurant(restaurant) {
+    fetch('http://localhost:8080/api/restaurants', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(restaurant)
+    })
+      .then(
+        res => this.loadRestaurantsFromServer(0)
+      )
+      .catch(err => console.error(err))
+  }
+
+  
+
+  handlePageClick = (data) => {
+    let selected = data.selected;
+    console.log(selected);
+    let offset = Math.ceil(selected * this.props.perPage);
+
+    this.setState({offset: offset}, () => {
+      this.loadRestaurantsFromServer(selected);
+    });
+  };
+
+  render() {
+    return (
+      <div className="restaurantBox">
+        <RestaurantForm createRestaurant={this.createRestaurant} />
+        <RestaurantList data={this.state.data} deleteRestaurant={this.deleteRestaurant}  />
+        <ReactPaginate previousLabel={"previous"}
+                       nextLabel={"next"}
+                       breakLabel={<a href="">...</a>}
+                       breakClassName={"break-me"}
+                       pageCount={this.state.pageCount}
+                       marginPagesDisplayed={2}
+                       pageRangeDisplayed={5}
+                       onPageChange={this.handlePageClick}
+                       containerClassName={"pagination"}
+                       subContainerClassName={"pages pagination"}
+                       activeClassName={"active"} />
+      </div>
+    );
+  }
+};
+
+
 
 class Restaurant extends React.Component {
   constructor(props) {
@@ -116,6 +172,7 @@ class Restaurant extends React.Component {
     );
   }
 }
+
 
 class RestaurantForm extends React.Component {
   constructor(props) {
@@ -163,6 +220,14 @@ class RestaurantForm extends React.Component {
     );
   }
 }
+
+
+ReactDOM.render(
+  <App 
+       author={'adele'}
+       perPage={10} />,
+  document.getElementById('root')
+);
 
 
 export default App;

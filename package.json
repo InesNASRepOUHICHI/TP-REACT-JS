@@ -11,6 +11,7 @@
     "react-basic-table": "^1.0.14",
     "react-bootstrap-table": "^4.3.1",
     "react-dom": "^16.6.0",
+    "react-paginate": "^5.2.4",
     "react-scripts": "2.0.5"
   },
   "scripts": {
