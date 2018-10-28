@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom';
 import ReactPaginate from 'react-paginate';
 
 
+
 window.React = React;
 
 
@@ -12,7 +13,7 @@ export class RestaurantList extends Component {
   }
   render() {
     var restaurantNodes = this.props.data.map(restaurant =>
-      <Restaurant key={restaurant._id} restaurant={restaurant} deleteRestaurant={this.props.deleteRestaurant} />
+      <Restaurant key={restaurant._id} restaurant={restaurant} deleteRestaurant={this.props.deleteRestaurant} updateRestaurant={this.props.updateRestaurant} />
     );
 
 
@@ -62,18 +63,28 @@ export class App extends Component {
     super(props);
     this.deleteRestaurant = this.deleteRestaurant.bind(this);
     this.createRestaurant = this.createRestaurant.bind(this);
+    this.searchRestaurants = this.searchRestaurants.bind(this);
     this.state = {
       data: [],
       offset: 0
     }
   }
-  
+
   // Load restaurants from database
   loadRestaurantsFromServer(pageIndex) {
-    fetch('http://localhost:8080/api/restaurants?page='+pageIndex+'&pagesize=10')
+    fetch('http://localhost:8080/api/restaurants?page=' + pageIndex + '&pagesize=10')
       .then((response) => response.json())
       .then((responseData) => {
-         this.setState({data: responseData.data, pageCount: Math.ceil(responseData.count/10)});
+        this.setState({ data: responseData.data, pageCount: Math.ceil(responseData.count / 10) });
+      });
+  }
+
+  // seacrh restaurants from database
+  searchRestaurants(query) {
+    fetch('http://localhost:8080/api/restaurants?page=0&pagesize=10&query=' + query)
+      .then((response) => response.json())
+      .then((responseData) => {
+        this.setState({ data: responseData.data, pageCount: Math.ceil(responseData.count / 10) });
       });
   }
 
@@ -107,14 +118,29 @@ export class App extends Component {
       .catch(err => console.error(err))
   }
 
-  
+
+  // Create new restaurant
+  updateRestaurant(restaurant) {
+    fetch('http://localhost:8080/api/restaurants/' + restaurant._id, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(restaurant)
+    })
+      .then(
+        res => this.loadRestaurantsFromServer(0)
+      )
+      .catch(err => console.error(err))
+  }
+
 
   handlePageClick = (data) => {
     let selected = data.selected;
     console.log(selected);
     let offset = Math.ceil(selected * this.props.perPage);
 
-    this.setState({offset: offset}, () => {
+    this.setState({ offset: offset }, () => {
       this.loadRestaurantsFromServer(selected);
     });
   };
@@ -123,18 +149,19 @@ export class App extends Component {
     return (
       <div className="restaurantBox">
         <RestaurantForm createRestaurant={this.createRestaurant} />
-        <RestaurantList data={this.state.data} deleteRestaurant={this.deleteRestaurant}  />
+        <SearchRestaurantForm searchRestaurants={this.searchRestaurants} />
+        <RestaurantList data={this.state.data} deleteRestaurant={this.deleteRestaurant} updateRestaurant={this.updateRestaurant} />
         <ReactPaginate previousLabel={"previous"}
-                       nextLabel={"next"}
-                       breakLabel={<a href="">...</a>}
-                       breakClassName={"break-me"}
-                       pageCount={this.state.pageCount}
-                       marginPagesDisplayed={2}
-                       pageRangeDisplayed={5}
-                       onPageChange={this.handlePageClick}
-                       containerClassName={"pagination"}
-                       subContainerClassName={"pages pagination"}
-                       activeClassName={"active"} />
+          nextLabel={"next"}
+          breakLabel={<a href="">...</a>}
+          breakClassName={"break-me"}
+          pageCount={this.state.pageCount}
+          marginPagesDisplayed={2}
+          pageRangeDisplayed={5}
+          onPageChange={this.handlePageClick}
+          containerClassName={"pagination"}
+          subContainerClassName={"pages pagination"}
+          activeClassName={"active"} />
       </div>
     );
   }
@@ -146,15 +173,25 @@ class Restaurant extends React.Component {
   constructor(props) {
     super(props);
     this.deleteRestaurant = this.deleteRestaurant.bind(this);
+    this.updateRestaurant = this.updateRestaurant.bind(this);
   }
 
   deleteRestaurant() {
-    var r = window.confirm("Voulez-vous vraiment supprimer ce restaurant: "+this.props.restaurant.name+"?");
+    var r = window.confirm("Voulez-vous vraiment supprimer ce restaurant: " + this.props.restaurant.name + "?");
     if (r == true) {
       this.props.deleteRestaurant(this.props.restaurant);
-    } 
-    
+    }
+
   }
+
+  updateRestaurant() {
+    var r = window.confirm("Voulez-vous vraiment modifier ce restaurant: " + this.props.restaurant.name + "?");
+    if (r == true) {
+      this.props.updateRestaurant(this.props.restaurant);
+    }
+
+  }
+
 
   render() {
     return (
@@ -194,13 +231,13 @@ class RestaurantForm extends React.Component {
     var newRestaurant = { name: this.state.name, cuisine: this.state.cuisine };
     console.log(newRestaurant);
     this.props.createRestaurant(newRestaurant);
-    window.alert("Restaurant "+newRestaurant.name+" bien ajouté");
+    window.alert("Restaurant " + newRestaurant.name + " bien ajouté");
   }
 
   render() {
     return (
       <div className="panel panel-default">
-      <h1 align="center">TP React JS + Node JS + Mongo DB</h1>
+        <h1 align="center">TP React JS + Node JS + Mongo DB</h1>
         <div className="panel-heading">Créer un restaurant</div>
         <div className="panel-body">
           <form className="form-inline">
@@ -222,10 +259,43 @@ class RestaurantForm extends React.Component {
 }
 
 
+class SearchRestaurantForm extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { name: '' };
+    this.handleChange = this.handleChange.bind(this);
+  }
+
+  handleChange(event) {
+    this.setState(
+      { [event.target.name]: event.target.value }
+    );
+    var query = { name: this.state.name };
+    this.props.searchRestaurants(query.name);
+  }
+
+  render() {
+    return (
+      <div className="panel panel-default">
+        <div className="panel-heading">Chercher un restaurant</div>
+        <div className="panel-body">
+          <form className="form-inline">
+            <div className="col-md-2">
+              <input type="text" placeholder="Name" className="form-control" name="name" onChange={this.handleChange} />
+            </div>
+          </form>
+        </div>
+      </div>
+
+    );
+  }
+}
+
+
 ReactDOM.render(
-  <App 
-       author={'adele'}
-       perPage={10} />,
+  <App
+    author={'adele'}
+    perPage={10} />,
   document.getElementById('root')
 );
 
