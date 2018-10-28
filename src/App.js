@@ -77,7 +77,7 @@ class RestaurantTable extends React.Component {
         <table className="table table-striped">
           <thead>
             <tr>
-              <th>Id</th><th>Name</th><th>Cuisine</th><th> </th>
+              <th>Id</th><th>Name</th><th>Cuisine</th><th> </th><th> </th>
             </tr>
           </thead>
           <tbody>{restaurants}</tbody>
@@ -107,7 +107,10 @@ class Restaurant extends React.Component {
         <td>{this.props.restaurant.name}</td>
         <td>{this.props.restaurant.cuisine}</td>
         <td>
-          <button className="btn btn-danger" onClick={this.deleteRestaurant}>Delete</button>
+          <button className="btn btn-danger glyphicon glyphicon-trash" onClick={this.deleteRestaurant}>  Supprimer</button>
+        </td>
+        <td>
+          <button className="btn btn-primary glyphicon glyphicon-pencil" onClick={this.updateRestaurant}>  Modifier</button>
         </td>
       </tr>
     );
@@ -150,7 +153,7 @@ class RestaurantForm extends React.Component {
               <input type="text" placeholder="Cuisine" className="form-control" name="cuisine" onChange={this.handleChange} />
             </div>
             <div className="col-md-2">
-              <button className="btn btn-success" onClick={this.handleSubmit}>Save</button>
+              <button className="btn btn-success glyphicon glyphicon-floppy-save " onClick={this.handleSubmit}>  Enregistrer</button>
             </div>
           </form>
         </div>
@@ -162,3 +165,4 @@ class RestaurantForm extends React.Component {
 
 
 export default App;
+
