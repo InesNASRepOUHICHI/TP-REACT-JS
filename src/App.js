@@ -80,8 +80,8 @@ export class App extends Component {
   }
 
   // seacrh restaurants from database
-  searchRestaurants(query) {
-    fetch('http://localhost:8080/api/restaurants?page=0&pagesize=10&query=' + query)
+  searchRestaurants(name) {
+    fetch('http://localhost:8080/api/restaurants?page=0&pagesize=10&name=' + name)
       .then((response) => response.json())
       .then((responseData) => {
         this.setState({ data: responseData.data, pageCount: Math.ceil(responseData.count / 10) });
