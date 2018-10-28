@@ -174,12 +174,20 @@ class Restaurant extends React.Component {
     super(props);
     this.deleteRestaurant = this.deleteRestaurant.bind(this);
     this.updateRestaurant = this.updateRestaurant.bind(this);
+    this.handleChange = this.handleChange.bind(this);
+    this.state = { name: this.props.restaurant.name, cuisine:this.props.restaurant.cuisine };
+  }
+
+  handleChange(event) {
+    this.setState(
+      { [event.target.name]: event.target.value }
+    );
   }
 
   deleteRestaurant() {
     var r = window.confirm("Voulez-vous vraiment supprimer ce restaurant: " + this.props.restaurant.name + "?");
     if (r == true) {
-      this.props.deleteRestaurant(this.props.restaurant);
+     this.props.deleteRestaurant(this.props.restaurant);
     }
 
   }
@@ -187,6 +195,8 @@ class Restaurant extends React.Component {
   updateRestaurant() {
     var r = window.confirm("Voulez-vous vraiment modifier ce restaurant: " + this.props.restaurant.name + "?");
     if (r == true) {
+      this.props.restaurant.name = this.state.name;
+      this.props.restaurant.cuisine = this.state.cuisine;
       this.props.updateRestaurant(this.props.restaurant);
     }
 
@@ -197,8 +207,8 @@ class Restaurant extends React.Component {
     return (
       <tr>
         <td>{this.props.restaurant._id}</td>
-        <td>{this.props.restaurant.name}</td>
-        <td>{this.props.restaurant.cuisine}</td>
+        <td><input type="text" name="name" defaultValue ={this.props.restaurant.name} onChange={this.handleChange}/></td>
+        <td><input type="text" name="cuisine" defaultValue ={this.props.restaurant.cuisine} onChange={this.handleChange}/></td>
         <td>
           <button className="btn btn-danger glyphicon glyphicon-trash" onClick={this.deleteRestaurant}>  Supprimer</button>
         </td>
@@ -220,7 +230,6 @@ class RestaurantForm extends React.Component {
   }
 
   handleChange(event) {
-    console.log("NAME: " + event.target.name + " VALUE: " + event.target.value)
     this.setState(
       { [event.target.name]: event.target.value }
     );
@@ -229,9 +238,7 @@ class RestaurantForm extends React.Component {
   handleSubmit(event) {
     event.preventDefault();
     var newRestaurant = { name: this.state.name, cuisine: this.state.cuisine };
-    console.log(newRestaurant);
     this.props.createRestaurant(newRestaurant);
-    window.alert("Restaurant " + newRestaurant.name + " bien ajouté");
   }
 
   render() {
