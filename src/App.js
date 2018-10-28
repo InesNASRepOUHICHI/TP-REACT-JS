@@ -239,6 +239,8 @@ class RestaurantForm extends React.Component {
     event.preventDefault();
     var newRestaurant = { name: this.state.name, cuisine: this.state.cuisine };
     this.props.createRestaurant(newRestaurant);
+    this.state.name = "";
+    this.state.cuisine = "";
   }
 
   render() {
@@ -249,13 +251,13 @@ class RestaurantForm extends React.Component {
         <div className="panel-body">
           <form className="form-inline">
             <div className="col-md-2">
-              <input type="text" placeholder="Name" className="form-control" name="name" onChange={this.handleChange} />
+              <input type="text" placeholder="Name" className="form-control" value={this.state.name} name="name" onChange={this.handleChange} />
             </div>
             <div className="col-md-2">
-              <input type="text" placeholder="Cuisine" className="form-control" name="cuisine" onChange={this.handleChange} />
+              <input type="text" placeholder="Cuisine" className="form-control" value={this.state.cuisine} name="cuisine" onChange={this.handleChange} />
             </div>
             <div className="col-md-2">
-              <button className="btn btn-success glyphicon glyphicon-floppy-save " onClick={this.handleSubmit}>  Enregistrer</button>
+              <input type="submit" className="btn btn-success glyphicon glyphicon-floppy-save " onClick={this.handleSubmit} value="  Enregistrer"/>
             </div>
           </form>
         </div>
